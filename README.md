@@ -1,3 +1,18 @@
+# Slax-Readability.js
+
+Since the original Readability version is prone to excessive deletion of the normal content of the article, this forked version is only intended to deal with the following specific issues to avoid missing content in the article
+
+- Add a unified whitelist for clean class
+- Add a whitelist for ignoring style removal
+- Retain elements in the highlights block
+- Adjusted video's regularity
+- Retain iframes with video src
+- add unified preserve-class-tag for preserving class type
+- Added ignore handling for microsoft video numbers
+- Expand the scope of paragraph preservation
+- Preserve wechat image style, skip processing
+- For H1~H7 tags, increased inclusiveness
+
 # Readability.js
 
 A standalone version of the readability library used for [Firefox Reader View](https://support.mozilla.org/kb/firefox-reader-view-clutter-free-web-pages).
