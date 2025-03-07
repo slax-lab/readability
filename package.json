@@ -1,6 +1,6 @@
 {
   "name": "@slax-lab/readability",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "A standalone version of the readability library used for Firefox Reader View.",
   "main": "index.js",
   "types": "index.d.ts",
@@ -12,17 +12,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mozilla/readability"
+    "url": "https://github.com/slax-lab/readability"
   },
   "author": "",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/mozilla/readability/issues"
+    "url": "https://github.com/slax-lab/readability/issues"
   },
   "engines": {
     "node": ">=14.0.0"
   },
-  "homepage": "https://github.com/mozilla/readability",
+  "homepage": "https://github.com/slax-lab/readability",
   "devDependencies": {
     "@release-it/keep-a-changelog": "5.0.0",
     "chai": "4.3.7",
