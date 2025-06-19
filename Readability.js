@@ -104,7 +104,7 @@ function Readability(doc, options) {
       }
     };
   } else {
-    this.log = function () {};
+    this.log = function () { };
   }
 }
 
@@ -671,7 +671,7 @@ Readability.prototype = {
       curTitleWordCount <= 4 &&
       (!titleHadHierarchicalSeparators ||
         curTitleWordCount !=
-          wordCount(origTitle.replace(/[\|\-\\\/>»]+/g, "")) - 1)
+        wordCount(origTitle.replace(/[\|\-\\\/>»]+/g, "")) - 1)
     ) {
       curTitle = origTitle;
     }
@@ -1168,9 +1168,9 @@ Readability.prototype = {
           if (this.UNLIKELY_ROLES.includes(node.getAttribute("role"))) {
             this.log(
               "Removing content with role " +
-                node.getAttribute("role") +
-                " - " +
-                matchString
+              node.getAttribute("role") +
+              " - " +
+              matchString
             );
             node = this._removeAndGetNext(node);
             continue;
@@ -1369,7 +1369,7 @@ Readability.prototype = {
         for (var i = 1; i < topCandidates.length; i++) {
           if (
             topCandidates[i].readability.contentScore /
-              topCandidate.readability.contentScore >=
+            topCandidate.readability.contentScore >=
             0.75
           ) {
             alternativeCandidateAncestors.push(
@@ -1497,7 +1497,7 @@ Readability.prototype = {
           if (
             sibling.readability &&
             sibling.readability.contentScore + contentBonus >=
-              siblingScoreThreshold
+            siblingScoreThreshold
           ) {
             append = true;
           } else if (sibling.nodeName === "P") {
@@ -1854,7 +1854,7 @@ Readability.prototype = {
 
     const articleAuthor =
       typeof values["article:author"] === "string" &&
-      !this._isUrl(values["article:author"])
+        !this._isUrl(values["article:author"])
         ? values["article:author"]
         : undefined;
 
@@ -2042,8 +2042,8 @@ Readability.prototype = {
       !node.textContent.trim().length &&
       (!node.children.length ||
         node.children.length ==
-          node.getElementsByTagName("br").length +
-            node.getElementsByTagName("hr").length)
+        node.getElementsByTagName("br").length +
+        node.getElementsByTagName("hr").length)
     );
   },
 
@@ -2492,6 +2492,11 @@ Readability.prototype = {
       var isDataTable = function (t) {
         return t._readabilityDataTable;
       };
+
+      if (node.readability && node.readability.contentScore > 50) {
+        this.log("Protecting high-score element:", node, "score:", node.readability.contentScore);
+        return false;
+      }
 
       var isList = tag === "ul" || tag === "ol";
       if (!isList) {
