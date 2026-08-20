@@ -2012,6 +2012,7 @@ Readability.prototype = {
           if (
             attr.name === "src" ||
             attr.name === "srcset" ||
+            attr.name === "style" ||
             /\.(jpg|jpeg|png|webp)/i.test(attr.value)
           ) {
             if (newImg.getAttribute(attr.name) === attr.value) {
