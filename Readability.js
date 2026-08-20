@@ -56,6 +56,7 @@ function Readability(doc, options) {
     options.classesToPreserve || []
   );
   this._keepClasses = !!options.keepClasses;
+  this._keepImgImportantStyles = !!options.keepImgImportantStyles;
   this._serializer =
     options.serializer ||
     function (el) {
@@ -2143,6 +2144,26 @@ Readability.prototype = {
   },
 
   /**
+   * Given an inline `style` attribute value, return only the declarations
+   * marked `!important`, joined back into a style string (or null if none).
+   *
+   * @param string|null styleText
+   * @return string|null
+   **/
+  _getImportantStyleDeclarations(styleText) {
+    if (!styleText) {
+      return null;
+    }
+    var importantDeclarations = styleText
+      .split(";")
+      .map((declaration) => declaration.trim())
+      .filter((declaration) => /!important\s*$/i.test(declaration));
+    return importantDeclarations.length
+      ? importantDeclarations.join("; ")
+      : null;
+  },
+
+  /**
    * Remove the style attribute on every e and under.
    * TODO: Test if getElementsByTagName(*) is faster.
    *
@@ -2165,7 +2186,15 @@ Readability.prototype = {
     }
 
     if (!this.REGEXPS.stylePreserveClassCandidates.test(e.className)) {
-      e.removeAttribute('style')
+      var preservedStyle =
+        this._keepImgImportantStyles && e.tagName === "IMG"
+          ? this._getImportantStyleDeclarations(e.getAttribute("style"))
+          : null;
+      if (preservedStyle) {
+        e.setAttribute("style", preservedStyle);
+      } else {
+        e.removeAttribute("style");
+      }
     }
 
     const ignore = this.REGEXPS.ignoreCleanStylesWhitelist.test(e.className);

@@ -49,6 +49,12 @@ export interface ReadabilityOptions<T = string> {
    */
   keepClasses?: boolean;
   /**
+   * If `true`, `<img>` elements will retain any `!important` declarations
+   * from their inline `style` attribute (all other inline styles are still
+   * stripped as usual). Defaults to `false`.
+   */
+  keepImgImportantStyles?: boolean;
+  /**
    * A function that serializes an HTML element into a string or another representation.
    * Defaults to `el => el.innerHTML`. This is used to get the content of the parsed article.
    * An identity function (`el => el`) may be useful for returning a DOM element as-is
