@@ -814,6 +814,136 @@ Readability.prototype = {
   },
 
   /**
+   * For WeChat official account articles (mp.weixin.qq.com), re-derive the
+   * !important width/height inline styles that WeChat's own client-side JS
+   * would inject at render time, based on each <img>'s `data-w`/`data-ratio`
+   * attributes and its ancestor chain's inline pixel widths. This lets
+   * unrendered WeChat HTML (fetched directly, without running a browser)
+   * end up with the same sizing information a browser would have added.
+   *
+   * Only inline pixel widths written by the WeChat editor are used to find
+   * the "parent width" (mirroring WeChat's own getParentWidth, whose
+   * clientWidth-based layout measurement isn't available without a real
+   * renderer); percentage/auto widths on ancestors are skipped over just
+   * like WeChat's function skips ancestors with no positive width.
+   *
+   * @param Element
+   * @return void
+   **/
+  _preprocessWeChatImages(articleContent) {
+    var baseURI = this._doc.baseURI || "";
+    var documentURI = this._doc.documentURI || "";
+    if (
+      !/(^|\.)mp\.weixin\.qq\.com$/i.test(this._getHostname(baseURI)) &&
+      !/(^|\.)mp\.weixin\.qq\.com$/i.test(this._getHostname(documentURI))
+    ) {
+      return;
+    }
+
+    var imgs = this._getAllNodesWithTag(articleContent, ["img"]);
+    this._forEachNode(imgs, (img) => this._setWeChatImgSize(img));
+  },
+
+  _getHostname(url) {
+    try {
+      return new URL(url).hostname;
+    } catch (e) {
+      return "";
+    }
+  },
+
+  /**
+   * Find the first ancestor (starting at the element itself) that declares
+   * an explicit pixel width in its inline style, mirroring WeChat's
+   * getParentWidth() which walks up until it finds a positive clientWidth.
+   *
+   * @param Element node
+   * @return number|null
+   **/
+  _getWeChatAncestorPixelWidth(node) {
+    for (var cur = node.parentNode; cur && cur.nodeType == 1; cur = cur.parentNode) {
+      var style = cur.getAttribute && cur.getAttribute("style");
+      if (!style) {
+        continue;
+      }
+      var match = /(?:^|[;\s])width\s*:\s*([\d.]+)px/i.exec(style);
+      if (match) {
+        var width = parseFloat(match[1]);
+        if (width > 0) {
+          return width;
+        }
+      }
+    }
+    return null;
+  },
+
+  /**
+   * Given an <img> with WeChat's `data-w`/`data-ratio` attributes, compute
+   * and inject the `width`/`height` !important inline styles that WeChat's
+   * client-side JS would have added, then return void (the element is
+   * mutated in place). No-ops if the image is missing the attributes
+   * WeChat's own logic depends on.
+   *
+   * @param Element img
+   * @return void
+   **/
+  _setWeChatImgSize(img) {
+    var dataW = img.getAttribute("data-w");
+    var dataRatio = img.getAttribute("data-ratio");
+    if (!dataW || !dataRatio) {
+      return;
+    }
+
+    var ratio = parseFloat(dataRatio);
+    var naturalWidth = parseFloat(dataW);
+    if (!(ratio > 0) || !(naturalWidth > 0)) {
+      return;
+    }
+
+    var parentWidth = this._getWeChatAncestorPixelWidth(img);
+
+    // Mirrors WeChat: init_width = img.style.width || width_(data-w) || parent_width
+    var styleWidth = img.style && img.style.width;
+    var initWidth = naturalWidth;
+    var initWidthIsPercent = false;
+    if (styleWidth) {
+      var percentMatch = /^([\d.]+)%$/.exec(styleWidth.trim());
+      var pxMatch = /^([\d.]+)px$/.exec(styleWidth.trim());
+      if (percentMatch) {
+        initWidth = parseFloat(percentMatch[1]);
+        initWidthIsPercent = true;
+      } else if (pxMatch) {
+        initWidth = parseFloat(pxMatch[1]);
+      }
+      // Any other unit/keyword (e.g. "auto", "inherit") falls back to data-w,
+      // matching WeChat's behaviour for those cases.
+    }
+
+    if (initWidthIsPercent) {
+      if (parentWidth == null) {
+        return;
+      }
+      initWidth = (initWidth / 100) * parentWidth;
+    }
+
+    // Mirrors setImgSize(): clamp to the parent's width unless told to break out of it.
+    var finalWidth =
+      parentWidth != null && initWidth > parentWidth ? parentWidth : initWidth;
+    var finalHeight = finalWidth * ratio;
+
+    var existingStyle = (img.getAttribute("style") || "")
+      .split(";")
+      .map((declaration) => declaration.trim())
+      .filter(
+        (declaration) =>
+          declaration && !/^(width|height)\s*:/i.test(declaration)
+      );
+    existingStyle.push("width: " + finalWidth + "px !important");
+    existingStyle.push("height: " + finalHeight + "px !important");
+    img.setAttribute("style", existingStyle.join("; "));
+  },
+
+  /**
    * Prepare the article node for display. Clean out any inline styles,
    * iframes, forms, strip extraneous <p> tags, etc.
    *
@@ -821,6 +951,7 @@ Readability.prototype = {
    * @return void
    **/
   _prepArticle(articleContent) {
+    this._preprocessWeChatImages(articleContent);
     this._cleanStyles(articleContent);
 
     // Check for data tables before we continue, to avoid removing items in
