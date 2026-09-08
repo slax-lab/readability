@@ -340,6 +340,19 @@ describe("Readability API", function () {
       expect(content).eql(expected_xhtml);
     });
 
+    it("should preserve the original img style attribute when unwrapping a noscript fallback image", function () {
+      var dom = new JSDOM(
+        "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc mollis leo lacus, vitae semper nisl ullamcorper ut.</p>" +
+          '<img src="http://example.com/a.jpg" style="opacity: 0; height: 10px !important;">' +
+          '<noscript><img src="http://example.com/b.jpg"></noscript>'
+      );
+      var content = new Readability(dom.window.document, {
+        charThreshold: 20,
+        keepImgImportantStyles: true,
+      }).parse().content;
+      expect(content).to.contain("height: 10px !important");
+    });
+
     it("should use custom video regex sent as option", function () {
       var dom = new JSDOM(
         "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc mollis leo lacus, vitae semper nisl ullamcorper ut.</p>" +
