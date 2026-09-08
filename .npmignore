@@ -3,3 +3,9 @@
 .gitattributes
 .release-it.json
 .taskcluster.yml
+.tmp-zone/
+.github/
+.claude/
+*.tgz
+test.json
+mp-weixin.sample.html
